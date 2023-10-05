@@ -74,7 +74,7 @@ def pay_purchase(purchase_id):
     order_id = request.args.get('order_id')  
     amount = request.args.get('amount')  
     
-    purchase = db.query(Purchases).filter_by(trans_id=trans_id, id=order_id, price=amount).limit(1).first()
+    purchase = db.query(Purchases).filter_by(id=order_id, price=amount).limit(1).first()
     if purchase is None:
         return (jsonify({'message': 'purchase does not exists.'}), 404)
     
@@ -85,7 +85,7 @@ def pay_purchase(purchase_id):
         'Content-Type': 'application/x-www-form-urlencoded'
     }
     response = requests.request("POST", url, headers=headers, data=payload)
-    if response.status == -90:
+    if response.json()['code'] == -90:
         return (jsonify({'message': 'purchase does not completed.'}), 500)
 
     try:
@@ -117,10 +117,14 @@ def create_purchase(user):
             'Content-Type': 'application/x-www-form-urlencoded'
         }
         response = requests.request("POST", url, headers=headers, data=payload)
+        trans_id = response.json()['trans_id']
+        if response.json()['code'] != -1:
+            return jsonify({'message': 'something went wrong.'}), 500
         db.add(new_purchase)  
         db.commit()    
         db.flush()
-        return jsonify({'message': 'purchase created successfully', 'purchase_id': new_purchase.id}), 201
+        purchase_url = f'https://nextpay.org/nx/gateway/payment/{trans_id}'
+        return jsonify({'message': 'purchase created successfully', 'purchase_id': new_purchase.id, 'purchase_redirect_url': purchase_url}), 201
     except Exception as e:
         print(e)
         return jsonify({'message': 'bad parameter type.'}), 400
