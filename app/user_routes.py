@@ -4,7 +4,7 @@ import jwt
 from functools import wraps
 from flask import Blueprint
 from . import db
-from .models import Users, Events, Tickets, AlchemyEncoder
+from .models import Users, AlchemyEncoder
 from .helper import token_required, gen_token, add_cors_headers
 import json
 
