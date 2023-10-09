@@ -5,3 +5,7 @@ uuid
 pytest
 psycopg2-binary
 python-dotenv
+alembic
+gunicorn
+boto3
+flask-cors
